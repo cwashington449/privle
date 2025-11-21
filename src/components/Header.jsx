@@ -3,12 +3,9 @@ import { HelpCircle, BarChart2 } from 'lucide-react';
 
 const Header = ({ onHelpClick, onStatsClick }) => {
     return (
-        <header className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white">
-            <div className="flex items-center">
-                {/* Placeholder for Logo if needed, or just text */}
-                <h1 className="text-2xl font-bold text-primary tracking-tight">Privle</h1>
-            </div>
-            <div className="flex items-center space-x-2">
+        <header className="relative flex items-center justify-center px-4 py-3 border-b border-gray-200 bg-white">
+            <h1 className="text-3xl font-bold text-primary tracking-tight">Privle</h1>
+            <div className="absolute right-4 flex items-center space-x-2">
                 <button
                     onClick={onHelpClick}
                     className="p-1 rounded-full hover:bg-gray-100 text-gray-600 transition-colors"
