@@ -15,7 +15,33 @@ const ModalOverlay = ({ children, onClose }) => (
     </div>
 );
 
-export const WinModal = ({ wordData, score, onClose, onShowLeaderboard }) => {
+export const WinModal = ({ wordData, score, guesses, onClose, onShowLeaderboard }) => {
+    const [copied, setCopied] = React.useState(false);
+
+    const handleShare = async () => {
+        const dayNumber = 1; // In a real app, calculate day number since epoch
+        const guessCount = guesses.length;
+
+        let shareText = `Privle ${dayNumber} ${guessCount}/6\n`;
+
+        guesses.forEach(guess => {
+            const row = guess.result.map(status => {
+                if (status === 'correct') return '🟩';
+                if (status === 'present') return '🟨';
+                return '⬜';
+            }).join('');
+            shareText += row + '\n';
+        });
+
+        try {
+            await navigator.clipboard.writeText(shareText);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+        }
+    };
+
     return (
         <ModalOverlay onClose={onClose}>
             <div className="p-6 text-center">
@@ -36,6 +62,18 @@ export const WinModal = ({ wordData, score, onClose, onShowLeaderboard }) => {
                         <div className="text-3xl font-bold text-gray-900">{score}</div>
                         <div className="text-xs text-gray-500 uppercase tracking-wide">Score</div>
                     </div>
+                    <div className="w-px h-12 bg-gray-200"></div>
+                    <button
+                        onClick={handleShare}
+                        className="flex flex-col items-center group"
+                    >
+                        <div className={`p-2 rounded-full mb-1 transition-colors ${copied ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600 group-hover:bg-gray-200'}`}>
+                            <Share2 size={24} />
+                        </div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">
+                            {copied ? 'Copied!' : 'Share'}
+                        </div>
+                    </button>
                 </div>
 
                 <div className="space-y-3">

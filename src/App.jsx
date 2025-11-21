@@ -177,6 +177,7 @@ function App() {
         <WinModal
           wordData={targetWordData}
           score={calculateScore(guesses.length)}
+          guesses={guesses}
           onClose={() => setShowWinModal(false)}
           onShowLeaderboard={() => {
             setShowWinModal(false);
