@@ -21,7 +21,8 @@ function App() {
 
   // Load game state
   useEffect(() => {
-    if (isWeekend()) {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (isWeekend() || urlParams.get('weekend') === 'true') {
       setIsWeekendMode(true);
       setWeekendFact(getRandomFact());
       return;
