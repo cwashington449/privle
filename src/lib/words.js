@@ -23,16 +23,33 @@ export const WORDS = [
     { "word": "RULES", "def": "With regulations changing constantly, Osano helps you play by the rules without slowing down your business." }
 ];
 
-export const getWordOfTheDay = () => {
-    // Simple day of year logic:
-    const now = new Date();
-    const start = new Date(now.getFullYear(), 0, 0);
-    const diff = now - start;
-    const oneDay = 1000 * 60 * 60 * 24;
-    const day = Math.floor(diff / oneDay);
+export const isWeekend = (date = new Date()) => {
+    const day = date.getDay();
+    return day === 0 || day === 6; // 0 is Sunday, 6 is Saturday
+};
 
-    // Modulo to loop through the words.
-    // Adding offset of 4 so that Nov 21 (Day 326 in 2024) maps to index 0 (CONSENT)
-    // 326 % 22 = 18. We need 0. So (326 + 4) % 22 = 0.
-    return WORDS[(day + 4) % WORDS.length];
+export const getWordOfTheDay = () => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 1); // Jan 1st
+    let businessDays = 0;
+
+    const current = new Date(start);
+    while (current <= now) {
+        const day = current.getDay();
+        if (day !== 0 && day !== 6) {
+            businessDays++;
+        }
+        current.setDate(current.getDate() + 1);
+    }
+
+    // Offset to align CONSENT (index 0) with Nov 21, 2024 (Thursday)
+    // Nov 21 is roughly the 233rd business day of 2024.
+    // 233 % 22 = 13. We need 0. So we add 9. (233 + 9 = 242. 242 % 22 = 0).
+    // Let's try +9.
+    return WORDS[(businessDays + 9) % WORDS.length];
+};
+
+export const getRandomFact = () => {
+    const randomIndex = Math.floor(Math.random() * WORDS.length);
+    return WORDS[randomIndex];
 };

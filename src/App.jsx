@@ -3,7 +3,7 @@ import Header from './components/Header';
 import GameBoard from './components/GameBoard';
 import Keyboard from './components/Keyboard';
 import { WinModal, LeaderboardModal, HelpModal } from './components/Modals';
-import { getWordOfTheDay } from './lib/words';
+import { getWordOfTheDay, isWeekend, getRandomFact } from './lib/words';
 import { checkGuess, calculateScore, MAX_GUESSES } from './lib/gameLogic';
 
 function App() {
@@ -12,6 +12,8 @@ function App() {
   const [currentGuess, setCurrentGuess] = useState('');
   const [isGameOver, setIsGameOver] = useState(false);
   const [isWon, setIsWon] = useState(false);
+  const [isWeekendMode, setIsWeekendMode] = useState(false);
+  const [weekendFact, setWeekendFact] = useState(null);
 
   const [showWinModal, setShowWinModal] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
@@ -19,6 +21,12 @@ function App() {
 
   // Load game state
   useEffect(() => {
+    if (isWeekend()) {
+      setIsWeekendMode(true);
+      setWeekendFact(getRandomFact());
+      return;
+    }
+
     const wordData = getWordOfTheDay();
     setTargetWordData(wordData);
 
@@ -34,14 +42,13 @@ function App() {
       }
     } else {
       // New game or first time
-      // Check if we should show help first time? Maybe.
       if (!savedState) setShowHelp(true);
     }
   }, []);
 
   // Save game state
   useEffect(() => {
-    if (!targetWordData) return;
+    if (!targetWordData || isWeekendMode) return;
 
     const today = new Date().toDateString();
     const state = {
@@ -51,24 +58,23 @@ function App() {
       isWon
     };
     localStorage.setItem('privle-state', JSON.stringify(state));
-  }, [guesses, isGameOver, isWon, targetWordData]);
+  }, [guesses, isGameOver, isWon, targetWordData, isWeekendMode]);
 
   const handleChar = (char) => {
-    if (isGameOver || !targetWordData) return;
+    if (isGameOver || !targetWordData || isWeekendMode) return;
     if (currentGuess.length < targetWordData.word.length) {
       setCurrentGuess(prev => prev + char);
     }
   };
 
   const handleDelete = () => {
-    if (isGameOver) return;
+    if (isGameOver || isWeekendMode) return;
     setCurrentGuess(prev => prev.slice(0, -1));
   };
 
   const handleEnter = () => {
-    if (isGameOver || !targetWordData) return;
+    if (isGameOver || !targetWordData || isWeekendMode) return;
     if (currentGuess.length !== targetWordData.word.length) {
-      // Shake animation or toast could go here
       return;
     }
 
@@ -82,15 +88,12 @@ function App() {
     if (won) {
       setIsWon(true);
       setIsGameOver(true);
-      setTimeout(() => setShowWinModal(true), 1500); // Delay for flip animation
+      setTimeout(() => setShowWinModal(true), 1500);
     } else if (newGuesses.length >= MAX_GUESSES) {
       setIsGameOver(true);
-      // Maybe show lost modal? Requirement only specified Win Modal details.
-      // I'll just leave it as is or show a "Game Over" toast.
     }
   };
 
-  // Calculate key statuses
   const keyStatuses = {};
   guesses.forEach(guess => {
     guess.word.split('').forEach((char, i) => {
@@ -106,6 +109,38 @@ function App() {
       }
     });
   });
+
+  if (isWeekendMode && weekendFact) {
+    return (
+      <div className="flex flex-col h-screen bg-gray-50">
+        <Header
+          onHelpClick={() => { }}
+          onStatsClick={() => { }}
+        />
+        <main className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+          <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
+            <h2 className="text-3xl font-bold text-primary mb-4">Happy Weekend!</h2>
+            <p className="text-gray-600 mb-8">
+              Privle takes a break on weekends. Come back on Monday for a new challenge!
+            </p>
+
+            <div className="bg-purple-50 p-6 rounded-lg border border-purple-100">
+              <h3 className="text-sm font-semibold text-purple-900 uppercase tracking-wide mb-2">Did You Know?</h3>
+              <p className="text-gray-800 italic mb-4">"{weekendFact.def}"</p>
+              <a
+                href="https://www.osano.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:text-purple-700 font-medium text-sm inline-flex items-center"
+              >
+                Learn more at Osano.com →
+              </a>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   if (!targetWordData) return <div className="flex items-center justify-center h-screen">Loading...</div>;
 
